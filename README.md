@@ -1,29 +1,51 @@
-# SBsender
+# 📱 SBsender
 
-Sistema para envio de mensagens via WhatsApp para números brasileiros utilizando Streamlit.
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.28.0-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4.6.0-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## Funcionalidades
+## 🚀 Sobre o Projeto
 
-- Importação de contatos via texto ou CSV
-- Correção automática de números para formato WhatsApp BR
-- Painel administrativo com histórico de envios
-- Cadastro e gestão de webhooks
-- Integração com webhook para disparo de mensagens
+O SBsender é uma aplicação web desenvolvida para facilitar o envio de mensagens via WhatsApp para números brasileiros. Com uma interface intuitiva e recursos poderosos, o sistema permite importar contatos, gerenciar webhooks e acompanhar o histórico de operações.
 
-## Requisitos
+## ✨ Funcionalidades
 
-- Python 3.8+
-- MongoDB
-- Dependências listadas em requirements.txt
+- 📋 **Importação de Contatos**
+  - Suporte para importação via texto ou arquivo CSV
+  - Validação automática de números brasileiros
+  - Feedback sobre números válidos e inválidos
 
-## Instalação
+- 🔗 **Gerenciamento de Webhooks**
+  - Sistema completo de CRUD para webhooks
+  - Integração com MongoDB para persistência
+  - Interface intuitiva para gerenciamento
 
-1. Clone o repositório
-2. Crie um ambiente virtual:
+- 📊 **Histórico de Operações**
+  - Registro detalhado de importações e envios
+  - Filtros por data
+  - Visualização clara dos detalhes de cada operação
+
+## 🛠️ Tecnologias Utilizadas
+
+- 🐍 **Python** - Linguagem principal
+- 🌐 **Streamlit** - Interface do usuário
+- 🗄️ **MongoDB** - Banco de dados
+- 📊 **Pandas** - Manipulação de dados
+- 🧪 **Unittest** - Testes unitários
+
+## 📦 Instalação
+
+1. Clone o repositório:
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+git clone https://github.com/adejaimejr/SBsender.git
+cd SBsender
+```
+
+2. Crie e ative o ambiente virtual:
+```bash
+python -m venv venv_sbsender
+venv_sbsender\Scripts\activate
 ```
 
 3. Instale as dependências:
@@ -32,64 +54,49 @@ pip install -r requirements.txt
 ```
 
 4. Configure as variáveis de ambiente:
-   - Copie o arquivo `.env.example` para `.env`
-   - Ajuste as configurações conforme necessário
+```bash
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+```
 
-5. Execute o aplicativo:
+## 🚀 Como Usar
+
+1. Ative o ambiente virtual:
+```bash
+venv_sbsender\Scripts\activate
+```
+
+2. Execute a aplicação:
 ```bash
 streamlit run app.py
 ```
 
-## Estrutura do Projeto
+3. Acesse a interface web em: http://localhost:8501
 
-```
-SBsender/
-├── app.py                 # Aplicação principal Streamlit
-├── src/
-│   ├── database/         # Configuração e operações do MongoDB
-│   ├── services/         # Lógica de negócios
-│   └── utils/            # Funções auxiliares
-├── tests/                # Testes unitários
-├── .env                  # Variáveis de ambiente
-└── requirements.txt      # Dependências do projeto
-```
-
-## Executando os Testes
+## 🧪 Testes
 
 Para executar os testes unitários:
-
 ```bash
 python -m unittest discover tests
 ```
 
-## Uso
+## 🔒 Segurança
 
-1. **Importação de Contatos:**
-   - Acesse a página "Importar Contatos"
-   - Escolha entre colar números ou importar CSV
-   - Selecione um webhook para envio (opcional)
-   - Os números serão validados e formatados automaticamente
+- ⚠️ Nunca compartilhe seu arquivo `.env`
+- 🔐 Mantenha suas credenciais seguras
+- 📝 Siga as boas práticas de segurança ao configurar webhooks
 
-2. **Gestão de Webhooks:**
-   - Acesse a página "Webhooks"
-   - Cadastre novos webhooks com título e URL
-   - Edite ou exclua webhooks existentes
+## 📄 Licença
 
-3. **Histórico:**
-   - Acesse a página "Histórico"
-   - Filtre por período
-   - Visualize detalhes de cada importação/envio
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## Contribuição
+## 👨‍💻 Autor
 
-1. Faça um Fork do projeto
-2. Crie uma branch para sua feature
-3. Faça commit das alterações
-4. Faça push para a branch
-5. Abra um Pull Request
+**Adejaime Junior**
 
-## Segurança
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Adejaime%20Junior-blue?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/adejaime-junior/)
+[![GitHub](https://img.shields.io/badge/GitHub-adejaimejr-181717?style=flat&logo=github&logoColor=white)](https://github.com/adejaimejr)
 
-- Nunca compartilhe seu arquivo `.env` ou credenciais
-- Mantenha o MongoDB protegido por senha
-- Valide e sanitize todas as URLs de webhook antes de usar
+---
+
+⭐️ Se este projeto te ajudou, considere dar uma estrela!
