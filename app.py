@@ -1,169 +1,209 @@
 import streamlit as st
-from dotenv import load_dotenv
-import os
-from datetime import datetime, time
-from src.services.contact_service import process_text_input, process_csv_file
+from src.services.contact_service import ContactService
 from src.services.webhook_service import WebhookService
 from src.services.history_service import HistoryService
+from src.database.mongodb import get_database
 
-# Carrega as variáveis de ambiente
-load_dotenv()
-
-# Configuração da página
-st.set_page_config(
-    page_title="SBsender",
-    page_icon="📱",
-    layout="wide"
-)
-
-# Inicializa os serviços
-webhook_service = WebhookService()
-history_service = HistoryService()
-
-# Título principal
-st.title("📱 SBsender")
-st.subheader("Sistema de Envio de Mensagens WhatsApp")
-
-# Sidebar para navegação
-menu = st.sidebar.selectbox(
-    "Menu",
-    ["Importar Contatos", "Webhooks", "Histórico"]
-)
-
-if menu == "Importar Contatos":
-    st.header("Importar Contatos")
-    
-    # Lista de webhooks disponíveis
-    webhooks = webhook_service.get_all_webhooks()
-    webhook_options = {w['title']: w['_id'] for w in webhooks}
-    selected_webhook = st.selectbox(
-        "Selecione o webhook para envio",
-        options=[""] + list(webhook_options.keys()),
-        format_func=lambda x: "Selecione um webhook" if x == "" else x
+def main():
+    st.set_page_config(
+        page_title="SBsender",
+        page_icon="📱",
+        layout="wide"
     )
     
-    # Opções de importação
-    import_option = st.radio(
-        "Escolha como deseja importar os contatos:",
-        ["Colar números", "Importar CSV"]
+    st.title("📱 SBsender")
+    
+    # Inicializa os serviços
+    db = get_database()
+    history_service = HistoryService(db)
+    contact_service = ContactService(history_service)
+    webhook_service = WebhookService(db)
+    
+    # Menu lateral
+    menu = st.sidebar.selectbox(
+        "Menu",
+        ["Importar Contatos", "Webhooks", "Histórico"]
     )
     
-    if import_option == "Colar números":
-        numbers = st.text_area(
-            "Cole os números (um por linha ou separados por vírgula)",
-            height=200
+    if menu == "Importar Contatos":
+        st.header("📥 Importar Contatos")
+        
+        # Seleção do método de importação
+        import_method = st.radio(
+            "Escolha o método de importação:",
+            ["Texto", "Arquivo CSV"]
         )
-        if st.button("Processar Números") and numbers:
-            valid_numbers, invalid_numbers = process_text_input(numbers)
+        
+        # Campo para mensagem
+        message = st.text_area(
+            "Mensagem a ser enviada:",
+            help="Digite a mensagem que será enviada para os contatos"
+        )
+        
+        # Seleção do webhook
+        webhooks = webhook_service.list_webhooks()
+        webhook_options = {w["title"]: w["url"] for w in webhooks}
+        webhook_options["Padrão"] = None
+        
+        selected_webhook = st.selectbox(
+            "Webhook para envio:",
+            options=list(webhook_options.keys()),
+            help="Selecione o webhook que será usado para enviar as mensagens"
+        )
+        
+        webhook_url = webhook_options[selected_webhook]
+        
+        if import_method == "Texto":
+            text_input = st.text_area(
+                "Cole os números aqui (um por linha):",
+                height=200
+            )
             
-            # Registra no histórico
-            webhook_id = webhook_options.get(selected_webhook) if selected_webhook else None
-            history_service.register_import(valid_numbers, invalid_numbers, webhook_id)
+            if st.button("Processar Números"):
+                if text_input:
+                    result = contact_service.process_contacts(text_input, webhook_url)
+                    
+                    st.write("### Resultado do Processamento")
+                    st.write(f"Total processado: {result['total_processed']}")
+                    st.write(f"Números válidos: {result['total_valid']}")
+                    st.write(f"Números inválidos: {result['total_invalid']}")
+                    
+                    if result["valid_numbers"]:
+                        st.success(f"✅ Números válidos ({len(result['valid_numbers'])}):")
+                        st.json(result["valid_numbers"])
+                        
+                        if message and st.button("Enviar Mensagem"):
+                            send_result = contact_service.send_messages(
+                                result["valid_numbers"],
+                                message,
+                                webhook_url
+                            )
+                            
+                            if send_result["success"]:
+                                st.success(send_result["message"])
+                            else:
+                                st.error(send_result["message"])
+                    
+                    if result["invalid_numbers"]:
+                        st.error(f"❌ Números inválidos ({len(result['invalid_numbers'])}):")
+                        st.json(result["invalid_numbers"])
+                        
+        else:  # CSV
+            uploaded_file = st.file_uploader("Escolha um arquivo CSV", type="csv")
             
-            st.success(f"✅ {len(valid_numbers)} números válidos encontrados")
-            if valid_numbers:
-                st.write("Números válidos:")
-                st.json(valid_numbers)
-            
-            if invalid_numbers:
-                st.error(f"❌ {len(invalid_numbers)} números inválidos encontrados")
-                st.write("Números inválidos:")
-                st.json(invalid_numbers)
+            if uploaded_file:
+                # Lê o CSV para mostrar as colunas disponíveis
+                import pandas as pd
+                df = pd.read_csv(uploaded_file)
+                column = st.selectbox("Selecione a coluna com os números:", df.columns)
+                
+                if st.button("Processar CSV"):
+                    # Volta o cursor do arquivo para o início
+                    uploaded_file.seek(0)
+                    result = contact_service.process_csv(uploaded_file.read(), column, webhook_url)
+                    
+                    if "error" in result:
+                        st.error(result["error"])
+                    else:
+                        st.write("### Resultado do Processamento")
+                        st.write(f"Total processado: {result['total_processed']}")
+                        st.write(f"Números válidos: {result['total_valid']}")
+                        st.write(f"Números inválidos: {result['total_invalid']}")
+                        
+                        if result["valid_numbers"]:
+                            st.success(f"✅ Números válidos ({len(result['valid_numbers'])}):")
+                            st.json(result["valid_numbers"])
+                            
+                            if message and st.button("Enviar Mensagem"):
+                                send_result = contact_service.send_messages(
+                                    result["valid_numbers"],
+                                    message,
+                                    webhook_url
+                                )
+                                
+                                if send_result["success"]:
+                                    st.success(send_result["message"])
+                                else:
+                                    st.error(send_result["message"])
+                        
+                        if result["invalid_numbers"]:
+                            st.error(f"❌ Números inválidos ({len(result['invalid_numbers'])}):")
+                            st.json(result["invalid_numbers"])
     
-    else:
-        uploaded_file = st.file_uploader("Escolha um arquivo CSV", type="csv")
-        if uploaded_file is not None:
-            valid_numbers, invalid_numbers = process_csv_file(uploaded_file)
+    elif menu == "Webhooks":
+        st.header("🔗 Gerenciar Webhooks")
+        
+        # Formulário para novo webhook
+        with st.form("new_webhook"):
+            st.write("### Adicionar Novo Webhook")
+            title = st.text_input("Título:")
+            url = st.text_input("URL:")
             
-            # Registra no histórico
-            webhook_id = webhook_options.get(selected_webhook) if selected_webhook else None
-            history_service.register_import(valid_numbers, invalid_numbers, webhook_id)
-            
-            st.success(f"✅ {len(valid_numbers)} números válidos encontrados")
-            if valid_numbers:
-                st.write("Números válidos:")
-                st.json(valid_numbers)
-            
-            if invalid_numbers:
-                st.error(f"❌ {len(invalid_numbers)} números inválidos encontrados")
-                st.write("Números inválidos:")
-                st.json(invalid_numbers)
-
-elif menu == "Webhooks":
-    st.header("Gerenciar Webhooks")
-    
-    # Lista de webhooks existentes
-    webhooks = webhook_service.get_all_webhooks()
-    if webhooks:
-        st.subheader("Webhooks Cadastrados")
+            if st.form_submit_button("Adicionar"):
+                if title and url:
+                    webhook_service.add_webhook(title, url)
+                    st.success("Webhook adicionado com sucesso!")
+                    st.rerun()
+        
+        # Lista webhooks existentes
+        st.write("### Webhooks Cadastrados")
+        webhooks = webhook_service.list_webhooks()
+        
         for webhook in webhooks:
             col1, col2, col3 = st.columns([3, 1, 1])
+            
             with col1:
-                st.text(f"📌 {webhook['title']}: {webhook['url']}")
+                st.write(f"**{webhook['title']}**  \n{webhook['url']}")
+            
             with col2:
                 if st.button("Editar", key=f"edit_{webhook['_id']}"):
                     st.session_state.editing_webhook = webhook['_id']
+            
             with col3:
                 if st.button("Excluir", key=f"delete_{webhook['_id']}"):
-                    if webhook_service.delete_webhook(webhook['_id']):
-                        st.success("Webhook excluído com sucesso!")
-                        st.rerun()
+                    webhook_service.delete_webhook(webhook['_id'])
+                    st.success("Webhook excluído com sucesso!")
+                    st.rerun()
+            
+            # Formulário de edição
+            if hasattr(st.session_state, 'editing_webhook') and st.session_state.editing_webhook == webhook['_id']:
+                with st.form(f"edit_webhook_{webhook['_id']}"):
+                    new_title = st.text_input("Novo título:", webhook['title'])
+                    new_url = st.text_input("Nova URL:", webhook['url'])
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.form_submit_button("Salvar"):
+                            webhook_service.update_webhook(
+                                webhook['_id'],
+                                new_title,
+                                new_url
+                            )
+                            st.success("Webhook atualizado com sucesso!")
+                            del st.session_state.editing_webhook
+                            st.rerun()
+                    
+                    with col2:
+                        if st.form_submit_button("Cancelar"):
+                            del st.session_state.editing_webhook
+                            st.rerun()
     
-    # Formulário para novo webhook ou edição
-    st.subheader("Adicionar/Editar Webhook")
-    with st.form("webhook_form"):
-        webhook_id = st.session_state.get('editing_webhook', None)
-        current_webhook = webhook_service.get_webhook_by_id(webhook_id) if webhook_id else None
+    else:  # Histórico
+        st.header("📊 Histórico de Operações")
         
-        webhook_titulo = st.text_input("Título", value=current_webhook['title'] if current_webhook else "")
-        webhook_url = st.text_input("URL", value=current_webhook['url'] if current_webhook else "")
+        # Filtros
+        col1, col2 = st.columns(2)
+        with col1:
+            start_date = st.date_input("Data inicial")
+        with col2:
+            end_date = st.date_input("Data final")
         
-        submitted = st.form_submit_button("Salvar")
-        if submitted and webhook_titulo and webhook_url:
-            if webhook_id:
-                if webhook_service.update_webhook(webhook_id, webhook_titulo, webhook_url):
-                    st.success("Webhook atualizado com sucesso!")
-                    del st.session_state.editing_webhook
-            else:
-                webhook_service.create_webhook(webhook_titulo, webhook_url)
-                st.success("Webhook criado com sucesso!")
-            st.rerun()
+        if st.button("Buscar"):
+            records = history_service.get_records(start_date, end_date)
+            
+            for record in records:
+                with st.expander(f"{record['timestamp']} - {record['operation']}"):
+                    st.json(record['details'])
 
-else:  # Histórico
-    st.header("Histórico de Envios")
-    
-    # Filtros
-    col1, col2 = st.columns(2)
-    with col1:
-        data_inicio = st.date_input("Data Inicial")
-    with col2:
-        data_fim = st.date_input("Data Final")
-    
-    # Converte as datas para datetime
-    start_datetime = datetime.combine(data_inicio, time.min)
-    end_datetime = datetime.combine(data_fim, time.max)
-    
-    # Busca o histórico
-    historico = history_service.get_history(start_datetime, end_datetime)
-    
-    if historico:
-        for entry in historico:
-            with st.expander(f"📝 Importação {entry['created_at'].strftime('%d/%m/%Y %H:%M')}"):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write("**Números Válidos:**", entry['valid_count'])
-                    if entry.get('success_count'):
-                        st.write("**Enviados com Sucesso:**", entry['success_count'])
-                with col2:
-                    st.write("**Números Inválidos:**", entry['invalid_count'])
-                    if entry.get('failed_count'):
-                        st.write("**Falhas no Envio:**", entry['failed_count'])
-                
-                st.write("**Status:**", "✅ Concluído" if entry['status'] == 'completed' else "⏳ Pendente")
-                
-                if entry.get('webhook_id'):
-                    webhook = webhook_service.get_webhook_by_id(entry['webhook_id'])
-                    if webhook:
-                        st.write("**Webhook:**", webhook['title'])
-    else:
-        st.info("Nenhum registro encontrado para o período selecionado.")
+if __name__ == "__main__":
+    main()
