@@ -71,3 +71,36 @@
 - 20/12/2023 14:30: Iniciado o Passo 2 - Configuração do Ambiente
 - 20/12/2023 14:30: Concluído o Passo 1 - Análise de Requisitos
 - 20/12/2023 14:00: Iniciado o Passo 1 - Análise de Requisitos
+# Inicializar o repositório
+git init
+
+# Adicionar todos os arquivos
+git add .
+
+# Fazer o primeiro commit
+git commit -m "Primeiro commit: Implementação inicial do SBsender
+
+- Implementação do sistema de importação de contatos
+- Sistema de gerenciamento de webhooks
+- Sistema de histórico de operações
+- Interface web com Streamlit
+- Documentação inicial do projeto
+- Scripts de inicialização
+- Configuração do ambiente de desenvolvimento"# Inicializar o repositório
+git init
+
+# Adicionar todos os arquivos
+git add .
+
+# Fazer o primeiro commit
+git commit -m "Primeiro commit: Implementação inicial do SBsender
+
+- Implementação do sistema de importação de contatos
+- Sistema de gerenciamento de webhooks
+- Sistema de histórico de operações
+- Interface web com Streamlit
+- Documentação inicial do projeto
+- Scripts de inicialização
+- Configuração do ambiente de desenvolvimento"
+
+
