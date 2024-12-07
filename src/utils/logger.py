@@ -1,5 +1,7 @@
 import os
-# ... existing code ...
+import logging
+from datetime import datetime
+import sys
 
 def setup_logger():
     # Configura o logger
@@ -17,10 +19,15 @@ def setup_logger():
     # Ensure the logs directory exists
     log_directory = 'logs'
     if not os.path.exists(log_directory):
+        print(f"Creating log directory at: {log_directory}")
         os.makedirs(log_directory)
+    else:
+        print(f"Log directory already exists at: {log_directory}")
     
     # Handler para arquivo
-    file_handler = logging.FileHandler(f'{log_directory}/sbsender_{datetime.now().strftime("%Y%m%d")}.log')
+    log_file_path = f'{log_directory}/sbsender_{datetime.now().strftime("%Y%m%d")}.log'
+    print(f"Log file path: {log_file_path}")
+    file_handler = logging.FileHandler(log_file_path)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     
