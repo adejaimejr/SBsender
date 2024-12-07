@@ -18,9 +18,17 @@ class TaskService:
         """
         self.db = db if db is not None else MongoDB().get_database()
         self.history_collection = self.db['history']
-        self.provider_webhook = os.secrets('PROVIDER_WEBHOOK_URL')
+        
+        # Para o Streamlit Cloud, use st.secrets
+        try:
+            import streamlit as st
+            self.provider_webhook = st.secrets["provider"]["webhook_url"]
+        except:
+            # Fallback para variáveis de ambiente locais
+            self.provider_webhook = os.getenv('PROVIDER_WEBHOOK_URL')
+        
         if not self.provider_webhook:
-            raise Exception("PROVIDER_WEBHOOK_URL não configurado no arquivo .env")
+            raise Exception("PROVIDER_WEBHOOK_URL não configurado")
         
         # Valida a URL do provedor
         parsed_url = urlparse(self.provider_webhook)
