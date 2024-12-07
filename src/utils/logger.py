@@ -1,7 +1,7 @@
 import logging
 import sys
 from datetime import datetime
-
+#
 def setup_logger():
     # Configura o logger
     logger = logging.getLogger('SBsender')
