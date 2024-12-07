@@ -1,7 +1,6 @@
-import logging
-import sys
-from datetime import datetime
-#
+import os
+# ... existing code ...
+
 def setup_logger():
     # Configura o logger
     logger = logging.getLogger('SBsender')
@@ -15,8 +14,13 @@ def setup_logger():
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
     
+    # Ensure the logs directory exists
+    log_directory = 'logs'
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+    
     # Handler para arquivo
-    file_handler = logging.FileHandler(f'logs/sbsender_{datetime.now().strftime("%Y%m%d")}.log')
+    file_handler = logging.FileHandler(f'{log_directory}/sbsender_{datetime.now().strftime("%Y%m%d")}.log')
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     
