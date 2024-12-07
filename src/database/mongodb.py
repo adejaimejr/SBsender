@@ -34,8 +34,8 @@ class MongoDB:
         Estabelece conexão com o MongoDB usando as configurações do .env
         """
         try:
-            mongo_uri = os.getenv('MONGODB_URI')
-            db_name = os.getenv('MONGODB_DATABASE')
+            mongo_uri = os.secrets('MONGODB_URI')
+            db_name = os.secrets('MONGODB_DATABASE')
             
             if not mongo_uri or not db_name:
                 raise Exception("MONGODB_URI ou MONGODB_DATABASE não configurados no arquivo .env")

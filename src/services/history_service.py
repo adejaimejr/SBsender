@@ -179,7 +179,7 @@ class HistoryService:
         local_tz = pytz.timezone('America/Sao_Paulo')
         local_timestamp = pytz.utc.localize(timestamp).astimezone(local_tz)
         
-        formatted_date = local_timestamp.strftime('📅 %d/%m/%Y %H:%M')
+        formatted_date = local_timestamp.strftime('%d/%m/%Y %H:%M')
         client_name = entry.get('client_name', 'Cliente')
         webhook_name = entry.get('webhook_name', 'Webhook')
         

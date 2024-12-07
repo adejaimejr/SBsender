@@ -18,7 +18,7 @@ class TaskService:
         """
         self.db = db if db is not None else MongoDB().get_database()
         self.history_collection = self.db['history']
-        self.provider_webhook = os.getenv('PROVIDER_WEBHOOK_URL')
+        self.provider_webhook = os.secrets('PROVIDER_WEBHOOK_URL')
         if not self.provider_webhook:
             raise Exception("PROVIDER_WEBHOOK_URL não configurado no arquivo .env")
         
