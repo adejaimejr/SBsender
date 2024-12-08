@@ -1,102 +1,132 @@
-# 📱 SBsender
+# SBsender - Sistema de Envio de Webhooks
 
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28.0-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-4.6.0-47A248?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+## Descrição
+O SBsender é um sistema de microserviços para gerenciamento e envio de webhooks, permitindo o envio de mensagens para múltiplos endpoints de forma confiável e escalável.
 
-## 🚀 Sobre o Projeto
+## Arquitetura
+O sistema é composto por vários microserviços:
 
-O SBsender é uma aplicação web desenvolvida para facilitar o envio de mensagens via WhatsApp para números brasileiros. Com uma interface intuitiva e recursos poderosos, o sistema permite importar contatos, gerenciar webhooks e acompanhar o histórico de operações.
+1. **API Gateway** (Porta 8080)
+   - Ponto central de acesso aos serviços
+   - Roteamento de requisições
+   - Monitoramento de saúde dos serviços
 
-## ✨ Funcionalidades
+2. **Webhook Service** (Porta 8002)
+   - Gerenciamento de webhooks
+   - Configuração de endpoints
+   - Sistema de retry para falhas
 
-- 📋 **Importação de Contatos**
-  - Suporte para importação via texto ou arquivo CSV
-  - Validação automática de números brasileiros
-  - Feedback sobre números válidos e inválidos
+3. **Message Service** (Porta 8003)
+   - Processamento de mensagens
+   - Envio para webhooks
+   - Gerenciamento de status
 
-- 🔗 **Gerenciamento de Webhooks**
-  - Sistema completo de CRUD para webhooks
-  - Integração com MongoDB para persistência
-  - Interface intuitiva para gerenciamento
+4. **History Service** (Porta 8001)
+   - Registro de eventos
+   - Histórico de mensagens
+   - Métricas e análises
 
-- 📊 **Histórico de Operações**
-  - Registro detalhado de importações e envios
-  - Filtros por data
-  - Visualização clara dos detalhes de cada operação
+5. **Frontend** (Porta 8501)
+   - Interface web em Streamlit
+   - Dashboard de métricas
+   - Gerenciamento de webhooks e mensagens
 
-## 🛠️ Tecnologias Utilizadas
+## Requisitos
+- Python 3.8+
+- MongoDB
+- Dependências específicas de cada serviço (ver requirements.txt em cada pasta)
 
-- 🐍 **Python** - Linguagem principal
-- 🌐 **Streamlit** - Interface do usuário
-- 🗄️ **MongoDB** - Banco de dados
-- 📊 **Pandas** - Manipulação de dados
-- 🧪 **Unittest** - Testes unitários
-
-## 📦 Instalação
+## Instalação
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/adejaimejr/SBsender.git
+git clone [URL_DO_REPOSITORIO]
 cd SBsender
 ```
 
-2. Crie e ative o ambiente virtual:
+2. Configure o MongoDB e crie um banco de dados para o projeto
+
+3. Em cada serviço (gateway, webhooks, messages, history, frontend):
+   ```bash
+   cd services/[SERVICE_NAME]
+   pip install -r requirements.txt
+   cp .env.example .env
+   # Configure as variáveis em .env
+   ```
+
+## Execução
+
+1. Inicie o MongoDB
+
+2. Execute o script de inicialização:
 ```bash
-python -m venv venv_sbsender
-venv_sbsender\Scripts\activate
+start_services.bat
 ```
 
-3. Instale as dependências:
+Ou inicie cada serviço manualmente:
 ```bash
-pip install -r requirements.txt
-```
+# History Service
+cd services/history
+python -m uvicorn app.main:app --port 8001
 
-4. Configure as variáveis de ambiente:
-```bash
-cp .env.example .env
-# Edite o arquivo .env com suas configurações
-```
+# Webhook Service
+cd services/webhooks
+python -m uvicorn app.main:app --port 8002
 
-## 🚀 Como Usar
+# Message Service
+cd services/messages
+python -m uvicorn app.main:app --port 8003
 
-1. Ative o ambiente virtual:
-```bash
-venv_sbsender\Scripts\activate
-```
+# API Gateway
+cd services/gateway
+python -m uvicorn app.main:app --port 8080
 
-2. Execute a aplicação:
-```bash
+# Frontend
+cd frontend
 streamlit run app.py
 ```
 
-3. Acesse a interface web em: http://localhost:8501
+## Acessando os Serviços
 
-## 🧪 Testes
+- Frontend: http://localhost:8501
+- API Gateway: http://localhost:8080
+- Documentação da API: http://localhost:8080/docs
 
-Para executar os testes unitários:
-```bash
-python -m unittest discover tests
+## Estrutura do Projeto
+```
+SBsender/
+├── services/
+│   ├── gateway/
+│   ├── webhooks/
+│   ├── messages/
+│   └── history/
+├── frontend/
+├── tests/
+└── start_services.bat
 ```
 
-## 🔒 Segurança
+## Desenvolvimento
 
-- ⚠️ Nunca compartilhe seu arquivo `.env`
-- 🔐 Mantenha suas credenciais seguras
-- 📝 Siga as boas práticas de segurança ao configurar webhooks
+Para contribuir com o projeto:
 
-## 📄 Licença
+1. Crie um branch para sua feature
+2. Faça suas alterações
+3. Execute os testes
+4. Envie um pull request
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+## Testes
 
-## 👨‍💻 Autor
+Execute os testes em cada serviço:
+```bash
+cd services/[SERVICE_NAME]
+pytest
+```
 
-**Adejaime Junior**
+## Monitoramento
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Adejaime%20Junior-blue?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/adejaime-junior/)
-[![GitHub](https://img.shields.io/badge/GitHub-adejaimejr-181717?style=flat&logo=github&logoColor=white)](https://github.com/adejaimejr)
+- Logs são gerados em cada serviço
+- Métricas disponíveis no dashboard
+- Healthcheck via API Gateway
 
----
-
-⭐️ Se este projeto te ajudou, considere dar uma estrela!
+## Licença
+[Tipo de Licença]
